@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAD en tu Escuela — Panel de Control COREAP</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --y:#FFCC00;--yd:#B89200;--yl:#FFF8CC;
+      --bk:#0A0A0A;--wh:#FFFFFF;
+      --g1:#F5F5F5;--g2:#E8E8E8;--g3:#AAAAAA;--g4:#555;
+      --gn:#1A7A3C;--gnb:#E6F4ED;
+      --rd:#C0392B;--rdb:#FDECEA;
+      --or:#B55E00;--orb:#FEF4DC;
+    }
+    body{font-family:'Inter',system-ui,sans-serif;background:#F0F0F0;color:var(--bk);font-size:13px}
+    .shell{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+    /* SIDEBAR */
+    .sb{background:var(--bk);color:#fff;display:flex;flex-direction:column}
+    .sb-logo{padding:18px 16px 14px;border-bottom:1px solid #1a1a1a}
+    .sb-badge{background:var(--y);color:var(--bk);font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;letter-spacing:.5px;display:inline-block;margin-bottom:6px}
+    .sb-name{font-size:11px;font-weight:500;color:#fff;line-height:1.3}
+    .sb-sub{font-size:9px;color:#555;margin-top:2px}
+    .sb-sect{padding:14px 14px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#444;font-weight:500}
+    .ni{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:11px;color:#888;cursor:pointer;border-left:2px solid transparent}
+    .ni:hover{color:#fff;background:#111}
+    .ni.on{color:var(--bk);background:var(--y);border-left-color:var(--yd);font-weight:500}
+    .nd{width:5px;height:5px;border-radius:50%;background:#333;flex-shrink:0}
+    .ni.on .nd{background:var(--bk)}
+    .nb{margin-left:auto;background:#1a1a1a;color:#555;font-size:9px;padding:1px 5px;border-radius:8px}
+    .ni.on .nb{background:rgba(0,0,0,.15);color:var(--bk)}
+    .sb-bot{margin-top:auto;padding:14px;border-top:1px solid #111}
+    .sb-av{width:26px;height:26px;border-radius:50%;background:var(--y);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--bk);flex-shrink:0}
+    /* MAIN */
+    .main{display:flex;flex-direction:column;overflow:hidden}
+    .topbar{background:#fff;border-bottom:1px solid var(--g2);padding:0 20px;height:48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .tb-title{font-size:13px;font-weight:500}
+    .tb-r{display:flex;align-items:center;gap:12px}
+    .status-pip{width:7px;height:7px;border-radius:50%;transition:background .4s}
+    .status-lbl{font-size:11px;color:var(--g3)}
+    /* TOGGLE */
+    .toggle-wrap{padding:12px 20px 0;display:flex;align-items:center;justify-content:space-between}
+    .toggle-label{font-size:11px;font-weight:500;color:var(--g4)}
+    .toggle-track{position:relative;width:200px;height:32px;background:var(--g2);border-radius:6px;display:flex;align-items:center;cursor:pointer;padding:3px}
+    .toggle-thumb{position:absolute;top:3px;width:97px;height:26px;border-radius:4px;transition:all .3s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;letter-spacing:.02em}
+    .toggle-opts{display:flex;width:100%;z-index:1;position:relative}
+    .toggle-opt{flex:1;text-align:center;font-size:10px;font-weight:500;padding:7px 0;cursor:pointer;border-radius:4px;color:var(--g3);transition:color .2s;user-select:none}
+    .toggle-opt.active{color:var(--bk)}
+    /* CONTENT */
+    .content{padding:14px 20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+    /* HERO BANNER */
+    .hero{border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;transition:background .4s,border .4s;border:1px solid transparent}
+    .hero.before{background:var(--rdb);border-color:#f5c6c2}
+    .hero.after{background:var(--gnb);border-color:#b7dfc6}
+    .hero-text{font-size:12px;font-weight:500;transition:color .3s}
+    .hero-text.before{color:var(--rd)}
+    .hero-text.after{color:var(--gn)}
+    .hero-sub{font-size:11px;margin-top:2px;opacity:.7}
+    .hero-tag{font-size:10px;font-weight:600;padding:4px 12px;border-radius:4px;transition:all .3s}
+    .hero-tag.before{background:var(--rd);color:#fff}
+    .hero-tag.after{background:var(--gn);color:#fff}
+    /* KPI GRID */
+    .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .kc{background:#fff;border-radius:10px;padding:12px 14px;border:0.5px solid var(--g2);transition:all .3s}
+    .kc.accent{border-top:3px solid var(--y)}
+    .kc-lbl{font-size:9px;color:var(--g3);font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+    .kc-val{font-size:22px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;transition:color .3s}
+    .kc-old{font-size:10px;color:var(--g3);text-decoration:line-through;margin-top:2px;transition:opacity .3s}
+    .kc-sub{font-size:10px;color:var(--g3);margin-top:2px}
+    .kc-trend{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;padding:2px 6px;border-radius:3px;margin-top:4px}
+    .tr-bad{background:var(--rdb);color:var(--rd)}
+    .tr-good{background:var(--gnb);color:var(--gn)}
+    /* TWO COL */
+    .grid2{display:grid;grid-template-columns:1fr 340px;gap:10px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    /* CARDS */
+    .card{background:#fff;border-radius:10px;border:0.5px solid var(--g2);overflow:hidden}
+    .ch{padding:12px 14px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--g2)}
+    .ct{font-size:12px;font-weight:500}
+    .ca{font-size:10px;color:var(--g3)}
+    /* BAR CHART */
+    .bar-chart{padding:10px 14px}
+    .bc-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+    .bc-lbl{font-size:10px;color:var(--g4);width:90px;flex-shrink:0}
+    .bc-bg{flex:1;height:7px;background:var(--g1);border-radius:4px;overflow:hidden}
+    .bc-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1),background .4s}
+    .bc-val{font-size:10px;font-weight:500;width:32px;text-align:right;color:var(--bk)}
+    /* DONUT AREA */
+    .donut-wrap{padding:14px;display:flex;align-items:center;gap:16px}
+    .donut-svg{flex-shrink:0}
+    .donut-leg{flex:1}
+    .dl-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+    .dl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+    .dl-lbl{font-size:10px;color:var(--g4)}
+    .dl-val{margin-left:auto;font-size:10px;font-weight:600;color:var(--bk)}
+    /* AGENTS */
+    .ag-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:0.5px solid var(--g2)}
+    .ag-row:last-child{border-bottom:none}
+    .ag-av{width:22px;height:22px;border-radius:50%;background:var(--g1);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:var(--g4);flex-shrink:0;border:0.5px solid var(--g2)}
+    .ag-name{font-size:11px;flex:1}
+    .ag-bg{width:56px;height:4px;background:var(--g2);border-radius:2px;overflow:hidden}
+    .ag-fill{height:100%;border-radius:2px;background:var(--y);transition:width .5s}
+    .ag-cnt{font-size:10px;color:var(--g3);font-variant-numeric:tabular-nums;width:42px;text-align:right}
+    .ag-tag{font-size:8px;background:var(--yl);color:var(--yd);padding:1px 5px;border-radius:3px;font-weight:500}
+    /* PHASE STEPPER */
+    .phase{padding:10px 14px}
+    .ph-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+    .ph-row:last-child{margin-bottom:0}
+    .ph-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+    .ph-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;transition:all .4s}
+    .ph-line{width:1px;flex:1;min-height:12px;background:var(--g2);margin:2px 0}
+    .ph-content{flex:1;padding-top:1px}
+    .ph-name{font-size:11px;font-weight:500;transition:color .3s}
+    .ph-desc{font-size:9px;color:var(--g3);margin-top:1px}
+    .ph-pill{display:inline-block;font-size:8px;font-weight:600;padding:1px 6px;border-radius:3px;margin-top:3px;transition:all .4s}
+    /* COST BLOCK */
+    .cost-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px}
+    .cg-item{background:var(--g1);border-radius:8px;padding:10px 12px;text-align:center}
+    .cg-lbl{font-size:9px;color:var(--g3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+    .cg-val{font-size:18px;font-weight:700;color:var(--bk)}
+    .cg-sub{font-size:9px;color:var(--g3);margin-top:2px}
+    .cg-item.highlight{background:var(--yl)}
+    .cg-item.highlight .cg-val{color:var(--yd)}
+    /* ROI */
+    .roi-bar-wrap{padding:12px 14px}
+    .roi-row{margin-bottom:10px}
+    .roi-labels{display:flex;justify-content:space-between;margin-bottom:4px}
+    .roi-lbl{font-size:10px;color:var(--g4)}
+    .roi-num{font-size:10px;font-weight:600;color:var(--bk)}
+    .roi-bg{height:10px;background:var(--g2);border-radius:5px;overflow:hidden}
+    .roi-fill{height:100%;border-radius:5px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+    /* WEEKLY CHART */
+    .wk-chart{padding:10px 14px;display:flex;align-items:flex-end;gap:5px;height:80px}
+    .wk-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+    .wk-bar-auto,.wk-bar-total{width:100%;border-radius:3px 3px 0 0;transition:height .5s cubic-bezier(.4,0,.2,1)}
+    .wk-day{font-size:8px;color:var(--g3)}
+    /* BOTTOM STATEMENT */
+    .statement{background:var(--bk);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+    .stmt-text{font-size:13px;font-weight:500;color:#fff;line-height:1.5;max-width:500px}
+    .stmt-kpi{text-align:right}
+    .stmt-big{font-size:28px;font-weight:700;color:var(--y)}
+    .stmt-sub{font-size:10px;color:#555;margin-top:2px}
+    .badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:500;padding:2px 7px;border-radius:10px}
+    .bd-dot{width:4px;height:4px;border-radius:50%;background:currentColor}
+    .b-ok{background:var(--gnb);color:var(--gn)}
+    .b-bad{background:var(--rdb);color:var(--rd)}
+    .b-warn{background:var(--orb);color:var(--or)}
+    .b-auto{background:var(--yl);color:var(--yd)}
+  </style>
+</head>
+<body>
+<h1 class="sr-only">Panel de presentación COREAP — comparador antes/después de la automatización CAD</h1>
+<div class="shell">
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="sb-badge">COREAP</div>
+    <div class="sb-name">Panel de Control</div>
+    <div class="sb-sub">Ministerio de Educación · GCBA</div>
+  </div>
+  <div class="sb-sect">Coordinaciones</div>
+  <div class="ni on"><div class="nd"></div>CAD en tu Escuela<span class="nb" id="sb-count">1.038</span></div>
+  <div class="ni"><div class="nd"></div>Listados</div>
+  <div class="ni"><div class="nd"></div>APEL</div>
+  <div class="ni"><div class="nd"></div>Concursos</div>
+  <div class="ni"><div class="nd"></div>Despacho</div>
+  <div class="sb-sect">Sistema</div>
+  <div class="ni"><div class="nd"></div>Automatización</div>
+  <div class="ni"><div class="nd"></div>Reportes</div>
+  <div class="sb-bot">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="sb-av">PL</div>
+      <div><div style="font-size:10px;color:#ccc">Pablo L.</div><div style="font-size:9px;color:#555">Analista · COREAP</div></div>
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div class="tb-title">CAD en tu Escuela — Presentación a Dirección</div>
+    <div style="font-size:11px;color:var(--g3)">16 de abril, 2026</div>
+    <div class="tb-r">
+      <div class="status-pip" id="status-pip" style="background:var(--rd)"></div>
+      <div class="status-lbl" id="status-lbl">Estado actual del servicio</div>
+    </div>
+  </div>
+  <!-- TOGGLE -->
+  <div class="toggle-wrap">
+    <div style="font-size:11px;color:var(--g4)">Modo de visualización:</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="toggle-track" id="toggle-track" onclick="toggleMode()">
+        <div class="toggle-thumb" id="toggle-thumb" style="left:3px;background:var(--bk);color:#fff">HOY</div>
+        <div class="toggle-opts">
+          <div class="toggle-opt active" id="opt-before">Sin automatización</div>
+          <div class="toggle-opt" id="opt-after">Con automatización</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--g3)">← hacer clic para comparar</div>
+    </div>
+  </div>
+  <div class="content">
+    <!-- HERO BANNER -->
+    <div class="hero before" id="hero">
+      <div>
+        <div class="hero-text before" id="hero-text">Situación actual: sobrecarga operativa crítica</div>
+        <div class="hero-sub" id="hero-sub">65% de tickets vencen · 7 asesores para 4.591 consultas mensuales · 130 minutos de espera</div>
+      </div>
+      <div class="hero-tag before" id="hero-tag">Sin automatización</div>
+    </div>
+    <!-- KPI GRID -->
+    <div class="kpi-grid">
+      <div class="kc accent">
+        <div class="kc-lbl">Tickets / mes</div>
+        <div class="kc-val" id="k-total">4.591</div>
+        <div class="kc-sub">~153 por día hábil</div>
+      </div>
+      <div class="kc">
+        <div class="kc-lbl">Respuesta automática</div>
+        <div class="kc-val" id="k-auto" style="color:var(--g3)">0%</div>
+        <div class="kc-old" id="k-auto-old" style="opacity:0">—</div>
+        <div class="kc-sub" id="k-auto-sub">Todo gestionado manualmente</div>
+      </div>
+      <div class="kc">
+        <div class="kc-lbl">Tickets vencidos</div>
+        <div class="kc-val" id="k-ven" style="color:var(--rd)">65%</div>
+        <div class="kc-old" id="k-ven-old" style="opacity:0">—</div>
+        <div class="kc-sub" id="k-ven-sub">2.985 sin respuesta en tiempo</div>
+        <div class="kc-trend tr-bad" id="k-ven-tr">Crítico</div>
+      </div>
+      <div class="kc">
+        <div class="kc-lbl">1ª respuesta promedio</div>
+        <div class="kc-val" id="k-resp">130'</div>
+        <div class="kc-old" id="k-resp-old" style="opacity:0">—</div>
+        <div class="kc-sub" id="k-resp-sub">2 horas y 10 minutos</div>
+      </div>
+      <div class="kc">
+        <div class="kc-lbl">Horas liberadas / mes</div>
+        <div class="kc-val" id="k-hrs" style="color:var(--g3)">0 hs</div>
+        <div class="kc-old" id="k-hrs-old" style="opacity:0">—</div>
+        <div class="kc-sub" id="k-hrs-sub">El equipo atiende todo</div>
+      </div>
+    </div>
+    <!-- ROW 2 -->
+    <div class="grid2">
+      <!-- LEFT: motivos + agentes + weekly -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="card">
+          <div class="ch"><div class="ct">Volumen por motivo · top 5 (88% del total)</div><div class="ca" id="motivo-tag">cobertura automática estimada</div></div>
+          <div class="bar-chart">
+            <div class="bc-row"><div class="bc-lbl">Documentación</div><div class="bc-bg"><div class="bc-fill" id="b1" style="width:88%;background:var(--y)"></div></div><div class="bc-val">26,7%</div></div>
+            <div class="bc-row"><div class="bc-lbl">Acto público</div><div class="bc-bg"><div class="bc-fill" id="b2" style="width:71%;background:var(--bk)"></div></div><div class="bc-val">19,1%</div></div>
+            <div class="bc-row"><div class="bc-lbl">Puntaje</div><div class="bc-bg"><div class="bc-fill" id="b3" style="width:59%;background:var(--bk)"></div></div><div class="bc-val">15,8%</div></div>
+            <div class="bc-row"><div class="bc-lbl">Inscripción</div><div class="bc-bg"><div class="bc-fill" id="b4" style="width:58%;background:var(--bk)"></div></div><div class="bc-val">15,7%</div></div>
+            <div class="bc-row"><div class="bc-lbl">Cuenta @BUE</div><div class="bc-bg"><div class="bc-fill" id="b5" style="width:42%;background:var(--g3)"></div></div><div class="bc-val">11,3%</div></div>
+          </div>
+        </div>
+        <div class="grid3">
+          <div class="card">
+            <div class="ch"><div class="ct">Tickets por día</div></div>
+            <div class="wk-chart" id="wk-chart" style="align-items:flex-end;padding-bottom:4px"></div>
+            <div style="display:flex;gap:10px;padding:4px 14px 10px;font-size:9px;color:var(--g3)">
+              <span id="wk-leg1">● Total</span>
+              <span id="wk-leg2" style="opacity:0">● Automáticos</span>
+            </div>
+          </div>
+          <div class="card" style="grid-column:span 2">
+            <div class="ch"><div class="ct">Equipo · 7 operativos</div><div class="ca" id="ag-head">de 12 en nómina</div></div>
+            <div class="ag-row"><div class="ag-av">MA</div><div class="ag-name">Marina A.</div><div class="ag-bg"><div class="ag-fill" id="af1" style="width:90%"></div></div><div class="ag-cnt" id="ac1">312</div></div>
+            <div class="ag-row"><div class="ag-av">GI</div><div class="ag-name">Gimena I.</div><div class="ag-bg"><div class="ag-fill" id="af2" style="width:82%"></div></div><div class="ag-cnt" id="ac2">281</div></div>
+            <div class="ag-row"><div class="ag-av">AL</div><div class="ag-name">Alejandro L.</div><div class="ag-bg"><div class="ag-fill" id="af3" style="width:75%"></div></div><div class="ag-cnt" id="ac3">258</div></div>
+            <div class="ag-row"><div class="ag-av">NO</div><div class="ag-name">Noelia D.</div><div class="ag-bg"><div class="ag-fill" id="af4" style="width:63%"></div></div><div class="ag-cnt" id="ac4">218</div></div>
+            <div class="ag-row"><div class="ag-av">LU</div><div class="ag-name">Lucas H.</div><div class="ag-bg"><div class="ag-fill" id="af5" style="width:56%"></div></div><div class="ag-cnt" id="ac5">192</div></div>
+            <div class="ag-row"><div class="ag-av">AR</div><div class="ag-name">Araceli S.</div><div class="ag-bg"><div class="ag-fill" id="af6" style="width:49%"></div></div><div class="ag-cnt" id="ac6">167</div></div>
+            <div class="ag-row"><div class="ag-av">JU</div><div class="ag-name">Juan C. <span class="ag-tag">nuevo 10d</span></div><div class="ag-bg"><div class="ag-fill" id="af7" style="width:18%"></div></div><div class="ag-cnt" id="ac7">61</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT PANEL -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <!-- DONUT / TRATAMIENTO -->
+        <div class="card">
+          <div class="ch"><div class="ct" id="donut-title">Gestión actual de tickets</div></div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" width="88" height="88" viewBox="0 0 88 88">
+              <circle cx="44" cy="44" r="32" fill="none" stroke="#E8E8E8" stroke-width="14"/>
+              <circle id="d1" cx="44" cy="44" r="32" fill="none" stroke="#0A0A0A" stroke-width="14" stroke-dasharray="201 201" stroke-dashoffset="0" transform="rotate(-90 44 44)" style="transition:stroke-dasharray .7s"/>
+              <circle id="d2" cx="44" cy="44" r="32" fill="none" stroke="#FFCC00" stroke-width="14" stroke-dasharray="0 201" stroke-dashoffset="0" transform="rotate(-90 44 44)" style="transition:stroke-dasharray .7s,stroke-dashoffset .7s"/>
+              <circle id="d3" cx="44" cy="44" r="32" fill="none" stroke="#E8E8E8" stroke-width="14" stroke-dasharray="0 201" stroke-dashoffset="0" transform="rotate(-90 44 44)" style="transition:all .7s"/>
+              <text x="44" y="40" text-anchor="middle" font-size="14" font-weight="700" fill="#0A0A0A" id="d-big">100%</text>
+              <text x="44" y="54" text-anchor="middle" font-size="8" fill="#AAAAAA" id="d-sub">manual</text>
+            </svg>
+            <div class="donut-leg">
+              <div class="dl-row"><div class="dl-dot" style="background:var(--bk)"></div><div class="dl-lbl" id="dl1">Gestión humana</div><div class="dl-val" id="dv1">100%</div></div>
+              <div class="dl-row"><div class="dl-dot" style="background:var(--y)"></div><div class="dl-lbl" id="dl2">Respuesta automática</div><div class="dl-val" id="dv2">0%</div></div>
+              <div class="dl-row"><div class="dl-dot" style="background:var(--g2)"></div><div class="dl-lbl" id="dl3">IA asiste asesor</div><div class="dl-val" id="dv3">0%</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- FASES -->
+        <div class="card">
+          <div class="ch"><div class="ct">Plan de implementación</div></div>
+          <div class="phase">
+            <div class="ph-row">
+              <div class="ph-left"><div class="ph-num" id="ph1" style="background:var(--y);color:var(--bk)">1</div><div class="ph-line"></div></div>
+              <div class="ph-content"><div class="ph-name">Modo silencioso · 7 días</div><div class="ph-desc">Clasifica sin enviar · validación interna</div><div class="ph-pill" id="pp1" style="background:var(--gnb);color:var(--gn)">Completado</div></div>
+            </div>
+            <div class="ph-row">
+              <div class="ph-left"><div class="ph-num" id="ph2" style="background:var(--g2);color:var(--g3)">2</div><div class="ph-line"></div></div>
+              <div class="ph-content"><div class="ph-name" id="ph2n" style="color:var(--g3)">Automatización parcial</div><div class="ph-desc">Responde casos de alta certeza</div><div class="ph-pill" id="pp2" style="background:var(--g2);color:var(--g3)">Pendiente</div></div>
+            </div>
+            <div class="ph-row">
+              <div class="ph-left"><div class="ph-num" style="background:var(--g2);color:var(--g3)">3</div><div class="ph-line"></div></div>
+              <div class="ph-content"><div class="ph-name" style="color:var(--g3)">Asignación automática</div><div class="ph-desc">Por motivo y carga del asesor</div><div class="ph-pill" style="background:var(--g2);color:var(--g3)">Fase futura</div></div>
+            </div>
+            <div class="ph-row">
+              <div class="ph-left"><div class="ph-num" style="background:var(--g2);color:var(--g3)">4</div></div>
+              <div class="ph-content"><div class="ph-name" style="color:var(--g3)">Escalado a otras coordinaciones</div><div class="ph-desc">APEL · Listados · Despacho</div><div class="ph-pill" style="background:var(--g2);color:var(--g3)">Fase futura</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- COSTOS -->
+        <div class="card">
+          <div class="ch"><div class="ct">Costo del sistema</div><div class="ca">con margen de seguridad</div></div>
+          <div class="cost-grid">
+            <div class="cg-item highlight"><div class="cg-lbl">IA · Claude Haiku</div><div class="cg-val">USD 65</div><div class="cg-sub">por mes · real ~USD 7</div></div>
+            <div class="cg-item highlight"><div class="cg-lbl">Servidor VPS</div><div class="cg-val">USD 54</div><div class="cg-sub">por mes · opcional</div></div>
+            <div class="cg-item"><div class="cg-lbl">n8n (software)</div><div class="cg-val">USD 0</div><div class="cg-sub">open source</div></div>
+            <div class="cg-item"><div class="cg-lbl">Total máximo</div><div class="cg-val">USD 119</div><div class="cg-sub">por mes · con todo</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ROI BARS -->
+    <div class="card">
+      <div class="ch"><div class="ct">Impacto operativo proyectado · con automatización activa</div></div>
+      <div class="roi-bar-wrap">
+        <div class="roi-row">
+          <div class="roi-labels"><div class="roi-lbl">Tickets automatizados / mes</div><div class="roi-num" id="roi1-val">0 tickets (0%)</div></div>
+          <div class="roi-bg"><div class="roi-fill" id="roi1" style="width:0%;background:var(--y)"></div></div>
+        </div>
+        <div class="roi-row">
+          <div class="roi-labels"><div class="roi-lbl">Horas liberadas para el equipo</div><div class="roi-num" id="roi2-val">0 horas / mes</div></div>
+          <div class="roi-bg"><div class="roi-fill" id="roi2" style="width:0%;background:var(--bk)"></div></div>
+        </div>
+        <div class="roi-row">
+          <div class="roi-labels"><div class="roi-lbl">Reducción de tickets vencidos</div><div class="roi-num" id="roi3-val">65% vencen actualmente</div></div>
+          <div class="roi-bg"><div class="roi-fill" id="roi3" style="width:65%;background:var(--rd)"></div></div>
+        </div>
+        <div class="roi-row">
+          <div class="roi-labels"><div class="roi-lbl">Equivalente en capacidad operativa</div><div class="roi-num" id="roi4-val">7 asesores disponibles hoy</div></div>
+          <div class="roi-bg"><div class="roi-fill" id="roi4" style="width:58%;background:var(--g2)"></div></div>
+        </div>
+      </div>
+    </div>
+    <!-- STATEMENT -->
+    <div class="statement" id="statement">
+      <div class="stmt-text" id="stmt-text">El CAD gestiona <strong style="color:var(--y)">4.591 consultas por mes</strong> con 7 asesores. El 65% vence sin respuesta. El 32% se reabre. El equipo está al límite de su capacidad operativa.</div>
+      <div class="stmt-kpi">
+        <div class="stmt-big" id="stmt-big">65%</div>
+        <div class="stmt-sub" id="stmt-sub">de tickets vencen hoy</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let isAuto = false;
+const days = ['Lun','Mar','Mié','Jue','Vie'];
+const totalTickets = [148,165,141,158,153];
+const autoTickets  = [68, 78, 65, 74, 71];
+
+function buildWeekChart(showAuto) {
+  const c = document.getElementById('wk-chart');
+  const max = Math.max(...totalTickets);
+  const H = 60;
+  c.innerHTML = '';
+  c.style.height = (H+20)+'px';
+  days.forEach((d,i) => {
+    const col = document.createElement('div');
+    col.className = 'wk-col';
+    col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px';
+    const totH = Math.round((totalTickets[i]/max)*H);
+    const autH = showAuto ? Math.round((autoTickets[i]/max)*H) : 0;
+    const manH = totH - autH;
+    if (showAuto) {
+      const ba = document.createElement('div');
+      ba.style.cssText = `width:100%;height:${autH}px;background:var(--y);border-radius:3px 3px 0 0;transition:height .5s`;
+      col.appendChild(ba);
+      const bm = document.createElement('div');
+      bm.style.cssText = `width:100%;height:${manH}px;background:var(--bk);border-radius:0`;
+      col.appendChild(bm);
+    } else {
+      const bt = document.createElement('div');
+      bt.style.cssText = `width:100%;height:${totH}px;background:var(--bk);border-radius:3px 3px 0 0;transition:height .5s`;
+      col.appendChild(bt);
+    }
+    const lbl = document.createElement('div');
+    lbl.className = 'wk-day';
+    lbl.textContent = d;
+    col.appendChild(lbl);
+    c.appendChild(col);
+  });
+}
+
+function setDonut(humanPct, autoPct, assistPct) {
+  const circ = 201;
+  const h = Math.round(circ * humanPct/100);
+  const a = Math.round(circ * autoPct/100);
+  const as = Math.round(circ * assistPct/100);
+  document.getElementById('d1').setAttribute('stroke-dasharray', h+' '+circ);
+  document.getElementById('d2').setAttribute('stroke-dasharray', a+' '+circ);
+  document.getElementById('d2').setAttribute('stroke-dashoffset', -h);
+  document.getElementById('d3').setAttribute('stroke-dasharray', as+' '+circ);
+  document.getElementById('d3').setAttribute('stroke-dashoffset', -(h+a));
+  document.getElementById('d-big').textContent = autoPct+'%';
+  document.getElementById('d-sub').textContent = autoPct > 0 ? 'automático' : 'manual';
+  document.getElementById('dv1').textContent = humanPct+'%';
+  document.getElementById('dv2').textContent = autoPct+'%';
+  document.getElementById('dv3').textContent = assistPct+'%';
+}
+
+function toggleMode() {
+  isAuto = !isAuto;
+  const th = document.getElementById('toggle-thumb');
+  const ob = document.getElementById('opt-before');
+  const oa = document.getElementById('opt-after');
+  th.style.left = isAuto ? 'calc(50% - 3px)' : '3px';
+  th.textContent = isAuto ? 'AUTO' : 'HOY';
+  th.style.background = isAuto ? 'var(--gn)' : 'var(--bk)';
+  ob.classList.toggle('active', !isAuto);
+  oa.classList.toggle('active', isAuto);
+  document.getElementById('status-pip').style.background = isAuto ? 'var(--gn)' : 'var(--rd)';
+  document.getElementById('status-lbl').textContent = isAuto ? 'Automatización activa' : 'Estado actual del servicio';
+  document.getElementById('sb-count').textContent = isAuto ? '~550' : '1.038';
+
+  const hero = document.getElementById('hero');
+  const ht = document.getElementById('hero-text');
+  const hs = document.getElementById('hero-sub');
+  const htg = document.getElementById('hero-tag');
+  if (isAuto) {
+    hero.className = 'hero after';
+    ht.className = 'hero-text after';
+    ht.textContent = 'Con automatización: 47% de consultas resueltas sin intervención humana';
+    hs.textContent = 'Respuesta en menos de 5 min · 380 horas liberadas · vencidos reducidos a ~20%';
+    htg.className = 'hero-tag after';
+    htg.textContent = 'Con automatización';
+  } else {
+    hero.className = 'hero before';
+    ht.className = 'hero-text before';
+    ht.textContent = 'Situación actual: sobrecarga operativa crítica';
+    hs.textContent = '65% de tickets vencen · 7 asesores para 4.591 consultas mensuales · 130 minutos de espera';
+    htg.className = 'hero-tag before';
+    htg.textContent = 'Sin automatización';
+  }
+
+  // KPIs
+  const autoVal = isAuto ? '47%' : '0%';
+  const venVal  = isAuto ? '~20%' : '65%';
+  const respVal = isAuto ? '<5\'' : '130\'';
+  const hrsVal  = isAuto ? '~480 hs' : '0 hs';
+  document.getElementById('k-auto').textContent = autoVal;
+  document.getElementById('k-auto').style.color = isAuto ? 'var(--gn)' : 'var(--g3)';
+  document.getElementById('k-auto-sub').textContent = isAuto ? '~2.158 tickets sin asesor' : 'Todo gestionado manualmente';
+  document.getElementById('k-auto-old').style.opacity = isAuto ? 1 : 0;
+  document.getElementById('k-auto-old').textContent = isAuto ? 'antes: 0%' : '';
+
+  document.getElementById('k-ven').textContent = venVal;
+  document.getElementById('k-ven').style.color = isAuto ? 'var(--or)' : 'var(--rd)';
+  document.getElementById('k-ven-sub').textContent = isAuto ? 'En proceso de resolución' : '2.985 sin respuesta en tiempo';
+  document.getElementById('k-ven-old').style.opacity = isAuto ? 1 : 0;
+  document.getElementById('k-ven-old').textContent = isAuto ? 'antes: 65%' : '';
+  document.getElementById('k-ven-tr').className = isAuto ? 'kc-trend tr-good' : 'kc-trend tr-bad';
+  document.getElementById('k-ven-tr').textContent = isAuto ? 'Mejorando' : 'Crítico';
+
+  document.getElementById('k-resp').textContent = respVal;
+  document.getElementById('k-resp').style.color = isAuto ? 'var(--gn)' : 'var(--bk)';
+  document.getElementById('k-resp-sub').textContent = isAuto ? 'Inmediato para casos automáticos' : '2 horas y 10 minutos';
+  document.getElementById('k-resp-old').style.opacity = isAuto ? 1 : 0;
+  document.getElementById('k-resp-old').textContent = isAuto ? 'antes: 130\'' : '';
+
+  document.getElementById('k-hrs').textContent = hrsVal;
+  document.getElementById('k-hrs').style.color = isAuto ? 'var(--gn)' : 'var(--g3)';
+  document.getElementById('k-hrs-sub').textContent = isAuto ? 'Equivale a 2-4 asesores adicionales' : 'El equipo atiende todo';
+  document.getElementById('k-hrs-old').style.opacity = isAuto ? 1 : 0;
+  document.getElementById('k-hrs-old').textContent = isAuto ? 'antes: 0 hs' : '';
+
+  // BAR COLORS (show automation coverage)
+  const bars = ['b1','b2','b3','b4','b5'];
+  bars.forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (isAuto) {
+      el.style.background = 'var(--gn)';
+    } else {
+      el.style.background = i===0 ? 'var(--y)' : (i<4 ? 'var(--bk)' : 'var(--g3)');
+    }
+  });
+  document.getElementById('motivo-tag').textContent = isAuto ? '✓ automatización activa en todos' : 'cobertura automática estimada';
+
+  // DONUT
+  if (isAuto) setDonut(40, 47, 13);
+  else setDonut(100, 0, 0);
+  document.getElementById('donut-title').textContent = isAuto ? 'Distribución con automatización' : 'Gestión actual de tickets';
+
+  // AGENTS
+  const af = ['af1','af2','af3','af4','af5','af6','af7'];
+  const ac = ['ac1','ac2','ac3','ac4','ac5','ac6','ac7'];
+  const man = [312,281,258,218,192,167,61];
+  const manA = [165,149,137,115,102,89,61];
+  af.forEach((id,i) => {
+    const pct = isAuto ? Math.round(manA[i]/312*100) : Math.round(man[i]/312*100);
+    document.getElementById(id).style.width = pct+'%';
+    document.getElementById(ac[i]).textContent = isAuto ? manA[i] : man[i];
+  });
+  document.getElementById('ag-head').textContent = isAuto ? 'carga reducida con automatización' : 'de 12 en nómina';
+
+  // PHASE 2
+  const ph2 = document.getElementById('ph2');
+  const pp2 = document.getElementById('pp2');
+  const ph2n = document.getElementById('ph2n');
+  if (isAuto) {
+    ph2.style.background = 'var(--bk)';
+    ph2.style.color = '#fff';
+    pp2.style.background = 'var(--yl)';
+    pp2.style.color = 'var(--yd)';
+    pp2.textContent = 'En curso';
+    ph2n.style.color = 'var(--bk)';
+  } else {
+    ph2.style.background = 'var(--g2)';
+    ph2.style.color = 'var(--g3)';
+    pp2.style.background = 'var(--g2)';
+    pp2.style.color = 'var(--g3)';
+    pp2.textContent = 'Pendiente';
+    ph2n.style.color = 'var(--g3)';
+  }
+
+  // ROI BARS
+  document.getElementById('roi1').style.width = isAuto ? '47%' : '0%';
+  document.getElementById('roi1').style.background = isAuto ? 'var(--y)' : 'var(--g2)';
+  document.getElementById('roi1-val').textContent = isAuto ? '~2.158 tickets (47%)' : '0 tickets (0%)';
+
+  document.getElementById('roi2').style.width = isAuto ? '78%' : '0%';
+  document.getElementById('roi2').style.background = isAuto ? 'var(--bk)' : 'var(--g2)';
+  document.getElementById('roi2-val').textContent = isAuto ? '~480 horas / mes' : '0 horas / mes';
+
+  document.getElementById('roi3').style.width = isAuto ? '20%' : '65%';
+  document.getElementById('roi3').style.background = isAuto ? 'var(--or)' : 'var(--rd)';
+  document.getElementById('roi3-val').textContent = isAuto ? '~20% vencen (antes: 65%)' : '65% vencen actualmente';
+
+  document.getElementById('roi4').style.width = isAuto ? '95%' : '58%';
+  document.getElementById('roi4').style.background = isAuto ? 'var(--gn)' : 'var(--g2)';
+  document.getElementById('roi4-val').textContent = isAuto ? 'Equivale a 9-10 asesores efectivos' : '7 asesores disponibles hoy';
+
+  // WEEKLY CHART
+  buildWeekChart(isAuto);
+  document.getElementById('wk-leg2').style.opacity = isAuto ? 1 : 0;
+
+  // STATEMENT
+  const sb = document.getElementById('stmt-big');
+  const ss = document.getElementById('stmt-sub');
+  const st = document.getElementById('stmt-text');
+  if (isAuto) {
+    sb.textContent = '47%';
+    ss.textContent = 'de tickets resueltos automáticamente';
+    st.innerHTML = 'Con la automatización activa, <strong style="color:var(--y)">~2.158 consultas por mes</strong> se resuelven sin intervención humana. El equipo recupera <strong style="color:var(--y)">~480 horas</strong> mensuales para enfocarse en los casos complejos.';
+  } else {
+    sb.textContent = '65%';
+    ss.textContent = 'de tickets vencen hoy';
+    st.innerHTML = 'El CAD gestiona <strong style="color:var(--y)">4.591 consultas por mes</strong> con 7 asesores. El 65% vence sin respuesta. El 32% se reabre. El equipo está al límite de su capacidad operativa.';
+  }
+}
+
+// Initialize
+buildWeekChart(false);
+setDonut(100, 0, 0);
+</script>
+
+</body>
+</html>
