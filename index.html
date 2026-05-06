@@ -150,7 +150,6 @@
   </style>
 </head>
 <body>
-<h1 class="sr-only">Panel de presentación COREAP — comparador antes/después de la automatización CAD</h1>
 <div class="shell">
 <aside class="sb">
   <div class="sb-logo">
@@ -169,14 +168,14 @@
   <div class="ni"><div class="nd"></div>Reportes</div>
   <div class="sb-bot">
     <div style="display:flex;align-items:center;gap:8px">
-      <div class="sb-av">PL</div>
-      <div><div style="font-size:10px;color:#ccc">Pablo L.</div><div style="font-size:9px;color:#555">Analista · COREAP</div></div>
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--y);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--bk);flex-shrink:0">PK</div>
+      <div><div style="font-size:11px;color:#ccc;font-weight:500">Pablo Kühle</div><div style="font-size:9px;color:#888;line-height:1.2">Especialista en IA<br>y Automatización · COREAP</div></div>
     </div>
   </div>
 </aside>
 <div class="main">
   <div class="topbar">
-    <div class="tb-title">CAD en tu Escuela — Presentación a Dirección</div>
+    <div class="tb-title">CAD en tu Escuela</div>
     <div style="font-size:11px;color:var(--g3)">16 de abril, 2026</div>
     <div class="tb-r">
       <div class="status-pip" id="status-pip" style="background:var(--rd)"></div>
@@ -184,17 +183,10 @@
     </div>
   </div>
   <!-- TOGGLE -->
-  <div class="toggle-wrap">
-    <div style="font-size:11px;color:var(--g4)">Modo de visualización:</div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="toggle-track" id="toggle-track" onclick="toggleMode()">
-        <div class="toggle-thumb" id="toggle-thumb" style="left:3px;background:var(--bk);color:#fff">HOY</div>
-        <div class="toggle-opts">
-          <div class="toggle-opt active" id="opt-before">Sin automatización</div>
-          <div class="toggle-opt" id="opt-after">Con automatización</div>
-        </div>
-      </div>
-      <div style="font-size:10px;color:var(--g3)">← hacer clic para comparar</div>
+  <div class="toggle-wrap" style="justify-content:flex-start;gap:16px;padding:12px 20px 14px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="opt-before-btn" onclick="toggleMode()" style="background:var(--bk);color:#fff;border:2px solid var(--bk);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .3s;flex:0">Sin automatización</button>
+      <button id="opt-after-btn" onclick="toggleMode()" style="background:transparent;color:var(--g3);border:2px solid var(--g2);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .3s;flex:0">Con automatización</button>
     </div>
   </div>
   <div class="content">
@@ -321,10 +313,10 @@
         <div class="card">
           <div class="ch"><div class="ct">Costo del sistema</div><div class="ca">con margen de seguridad</div></div>
           <div class="cost-grid">
-            <div class="cg-item highlight"><div class="cg-lbl">IA · Claude Haiku</div><div class="cg-val">USD 65</div><div class="cg-sub">por mes · real ~USD 7</div></div>
-            <div class="cg-item highlight"><div class="cg-lbl">Servidor VPS</div><div class="cg-val">USD 54</div><div class="cg-sub">por mes · opcional</div></div>
-            <div class="cg-item"><div class="cg-lbl">n8n (software)</div><div class="cg-val">USD 0</div><div class="cg-sub">open source</div></div>
-            <div class="cg-item"><div class="cg-lbl">Total máximo</div><div class="cg-val">USD 119</div><div class="cg-sub">por mes · con todo</div></div>
+            <div class="cg-item highlight"><div class="cg-lbl"><a href="https://claude.ai/upgrade/pro" style="color:var(--yd);text-decoration:none;font-weight:600">Claude Pro</a></div><div class="cg-val">USD 20</div><div class="cg-sub">por mes</div></div>
+            <div class="cg-item highlight"><div class="cg-lbl"><a href="https://cart.hostinger.com/pay/aeee393a-4c94-49c6-a883-4e1a7f409ac9?_ga=GA1.1.2102430857.1776363146&_ga_73N1QWLEMH=GS2.1.s1777469243%24o3%24g1%24t1777469328%24j6%24l0%24h1548684390%24dHos6tW0CjslVwjJ0ktghXe7cnEqZxmXptQ&session_id=1777469243&device_id=b1c493be-4f42-4b98-9b2d-02de4f78af8c&from=websites" style="color:var(--yd);text-decoration:none;font-weight:600">Hostinger</a></div><div class="cg-val">AR$ 75.498</div><div class="cg-sub">servidor en la nube</div></div>
+            <div class="cg-item"><div class="cg-lbl"><a href="https://platform.claude.com/docs/en/api/overview" style="color:var(--g3);text-decoration:none;font-weight:600">Tokens API</a></div><div class="cg-val">USD 20</div><div class="cg-sub">lo que consume la IA</div></div>
+            <div class="cg-item"><div class="cg-lbl">Cotización dólar</div><div class="cg-val">AR$ 1.380</div><div class="cg-sub">hoy</div></div>
           </div>
         </div>
       </div>
@@ -421,14 +413,24 @@ function setDonut(humanPct, autoPct, assistPct) {
 
 function toggleMode() {
   isAuto = !isAuto;
-  const th = document.getElementById('toggle-thumb');
-  const ob = document.getElementById('opt-before');
-  const oa = document.getElementById('opt-after');
-  th.style.left = isAuto ? 'calc(50% - 3px)' : '3px';
-  th.textContent = isAuto ? 'AUTO' : 'HOY';
-  th.style.background = isAuto ? 'var(--gn)' : 'var(--bk)';
-  ob.classList.toggle('active', !isAuto);
-  oa.classList.toggle('active', isAuto);
+  const ob = document.getElementById('opt-before-btn');
+  const oa = document.getElementById('opt-after-btn');
+
+  if (isAuto) {
+    ob.style.background = 'transparent';
+    ob.style.color = 'var(--g3)';
+    ob.style.borderColor = 'var(--g2)';
+    oa.style.background = 'var(--gn)';
+    oa.style.color = '#fff';
+    oa.style.borderColor = 'var(--gn)';
+  } else {
+    ob.style.background = 'var(--bk)';
+    ob.style.color = '#fff';
+    ob.style.borderColor = 'var(--bk)';
+    oa.style.background = 'transparent';
+    oa.style.color = 'var(--g3)';
+    oa.style.borderColor = 'var(--g2)';
+  }
   document.getElementById('status-pip').style.background = isAuto ? 'var(--gn)' : 'var(--rd)';
   document.getElementById('status-lbl').textContent = isAuto ? 'Automatización activa' : 'Estado actual del servicio';
   document.getElementById('sb-count').textContent = isAuto ? '~550' : '1.038';
